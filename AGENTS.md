@@ -51,6 +51,7 @@
 - 테스트는 `*.test.ts(x)`로 같은 위치에 둔다. Vitest는 `src/**/*.test.{ts,tsx}`와 `server/**/*.test.ts`만 수집한다(`vite.config.ts:20`). 테스트 이름은 한국어로 작성한다(기존 테스트 참고).
 - 사용자에게 보이는 UI 문구, 코드 주석, 에러 메시지는 한국어로 작성한다.
 - 커밋: 한국어 Conventional Commits, `type: 요약` 형식이며 `feat`, `fix`, `refactor`, `chore`를 사용한다(`git log` 참고). 커밋 시 `commit` 스킬을 사용한다.
+- 커밋 전 테스트 강제: `git commit`이 포함된 Bash 명령은 PreToolUse 훅(`.claude/hooks/require-tests-before-commit.sh`, 등록: `.claude/settings.json`)이 먼저 `bun run test`를 실행하고, 하나라도 실패하면 커밋을 차단한다. 차단되면 `--no-verify`, 명령 변형, 훅·설정 수정으로 우회하지 말고 실패한 테스트를 고친 뒤 다시 커밋한다. 테스트를 삭제·`skip` 처리해 통과시키지 않는다. 이 훅은 에이전트의 커밋에만 적용되며 사용자가 터미널에서 직접 하는 커밋에는 적용되지 않는다.
 - `.agents/skills/` 아래 스킬은 `skills-lock.json`에 업스트림 저장소 해시로 고정되어 있다. 직접 수정하지 말고 스킬 소스를 통해 업데이트한다.
 - deny 규칙의 부작용: `secret`·`credential` 단어가 들어간 모든 Bash 명령(검색, 커밋 메시지 포함)과 `bun -e`·`node -e` 같은 일회성 실행도 막힌다. 검색은 Grep 도구를 쓰고, 커밋 메시지에서는 해당 단어를 피한다. 민감 파일 패턴을 추가·삭제할 때는 `.claude/settings.json`의 `permissions.deny`와 위 불변 규칙을 같은 변경에서 함께 수정한다.
 - 유지보수 정책: 이 문서의 규칙이 코드와 어긋나면(라인 이동, 파일명 변경, 포트 변경, 신규 프로바이더 등) 같은 변경에서 이 파일의 업데이트를 제안한다. 알려진 불일치: `README.md`가 저장소에 없는 `.env.example`을 참조한다.
