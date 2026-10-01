@@ -38,4 +38,37 @@ describe('ComponentCard', () => {
 
     expect(await screen.findByText('미리보기 결과')).toBeInTheDocument();
   });
+
+  it('스트리밍 중에는 코드 탭을 선택하고 지금까지 받은 코드를 보여준다', () => {
+    render(
+      <ComponentCard
+        component={{ ...component, code: 'const Partial' }}
+        onRemove={vi.fn()}
+        onRegenerate={vi.fn()}
+        isLoading
+        isStreaming
+      />,
+    );
+
+    expect(screen.getByRole('tab', { name: '코드' })).toHaveAttribute('aria-selected', 'true');
+    expect(screen.getByText('const Partial')).toBeInTheDocument();
+  });
+
+  it('스트리밍이 끝나면 미리보기 탭으로 전환해 컴포넌트를 실행한다', async () => {
+    const props = { component, onRemove: vi.fn(), onRegenerate: vi.fn() };
+    const { rerender } = render(<ComponentCard {...props} isLoading isStreaming />);
+
+    rerender(<ComponentCard {...props} isLoading={false} isStreaming={false} />);
+
+    expect(screen.getByRole('tab', { name: '미리보기' })).toHaveAttribute('aria-selected', 'true');
+    expect(await screen.findByText('미리보기 결과')).toBeInTheDocument();
+  });
+
+  it('스트리밍 중에는 완성되지 않은 코드를 실행하지 않도록 미리보기 탭을 비활성화한다', () => {
+    render(
+      <ComponentCard component={component} onRemove={vi.fn()} onRegenerate={vi.fn()} isLoading isStreaming />,
+    );
+
+    expect(screen.getByRole('tab', { name: '미리보기' })).toBeDisabled();
+  });
 });

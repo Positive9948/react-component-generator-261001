@@ -601,7 +601,12 @@
   font-size: var(--px-s);
 }
 
-.tab:hover:not(.tab--active) {
+.tab:disabled {
+  color: var(--disabled);
+  cursor: default;
+}
+
+.tab:hover:not(.tab--active):not(:disabled) {
   background-color: var(--paper);
 }
 

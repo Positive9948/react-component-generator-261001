@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import App from './App';
+import { controllableStream, ndjsonResponse } from './test/streams';
 import { STORAGE_KEYS } from './utils/storage';
 
 const mockApi = () =>
@@ -9,7 +10,7 @@ const mockApi = () =>
     if (url === '/api/config') {
       return Response.json({ envKeys: { anthropic: true, google: true } });
     }
-    return Response.json({ code: 'render(<div>생성됨</div>)' });
+    return ndjsonResponse({ type: 'done', code: 'render(<div>생성됨</div>)' });
   });
 
 beforeEach(() => {
@@ -80,5 +81,32 @@ describe('App', () => {
     render(<App />);
 
     expect(screen.getByRole('alert')).toHaveTextContent('컴포넌트를 브라우저에 저장하지 못했습니다');
+  });
+
+  it('생성 중에는 코드 탭에 받은 코드를 실시간으로 보여주고, 끝나면 미리보기 탭으로 전환한다', async () => {
+    const { stream, send, close } = controllableStream();
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string) =>
+        url === '/api/config'
+          ? Response.json({ envKeys: { anthropic: true, google: true } })
+          : new Response(stream),
+      ),
+    );
+    const user = userEvent.setup();
+    render(<App />);
+
+    await user.type(screen.getByPlaceholderText(/고객 목록 테이블/), '프로필 카드');
+    await user.click(screen.getByRole('button', { name: '컴포넌트 생성' }));
+    send({ type: 'delta', text: 'render(<div>스트리밍' });
+
+    expect(await screen.findByText('render(<div>스트리밍')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '코드' })).toHaveAttribute('aria-selected', 'true');
+
+    send({ type: 'done', code: 'render(<div>완성</div>)' });
+    close();
+
+    expect(await screen.findByText('완성')).toBeInTheDocument();
+    expect(screen.getByRole('tab', { name: '미리보기' })).toHaveAttribute('aria-selected', 'true');
   });
 });
