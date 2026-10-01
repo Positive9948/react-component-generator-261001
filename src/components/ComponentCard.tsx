@@ -10,6 +10,8 @@ interface ComponentCardProps {
   onRegenerate: (prompt: string) => void;
   isLoading: boolean;
   autoRun?: boolean;
+  /** 코드를 받는 중이면 코드 탭에서 실시간으로 보여준다. */
+  isStreaming?: boolean;
 }
 
 type Tab = 'preview' | 'code';
@@ -20,9 +22,17 @@ export function ComponentCard({
   onRegenerate,
   isLoading,
   autoRun = true,
+  isStreaming = false,
 }: ComponentCardProps) {
-  const [activeTab, setActiveTab] = useState<Tab>('preview');
+  const [activeTab, setActiveTab] = useState<Tab>(isStreaming ? 'code' : 'preview');
+  const [wasStreaming, setWasStreaming] = useState(isStreaming);
   const [previewKey, setPreviewKey] = useState(0);
+
+  // 스트리밍이 끝나는 순간 미리보기 탭으로 전환한다. (렌더 중 상태 조정 패턴)
+  if (wasStreaming !== isStreaming) {
+    setWasStreaming(isStreaming);
+    if (!isStreaming) setActiveTab('preview');
+  }
   const [isRunning, setIsRunning] = useState(autoRun);
   const createdAt = component.createdAt.toLocaleTimeString('ko-KR', {
     hour: '2-digit',
@@ -32,7 +42,7 @@ export function ComponentCard({
   return (
     <article className="window component-card">
       <TitleBar
-        title={`${createdAt}에 생성`}
+        title={isStreaming ? '코드 생성 중...' : `${createdAt}에 생성`}
         onClose={() => onRemove(component.id)}
         closeLabel="이 컴포넌트 삭제"
       />
@@ -61,6 +71,7 @@ export function ComponentCard({
           aria-selected={activeTab === 'preview'}
           className={`tab ${activeTab === 'preview' ? 'tab--active' : ''}`}
           onClick={() => setActiveTab('preview')}
+          disabled={isStreaming}
         >
           미리보기
         </button>
@@ -75,7 +86,7 @@ export function ComponentCard({
       </div>
       <div className="card-content" role="tabpanel">
         {activeTab === 'code' ? (
-          <CodeView code={component.code} />
+          <CodeView code={component.code} follow={isStreaming} />
         ) : isRunning ? (
           <LivePreview key={previewKey} code={component.code} />
         ) : (

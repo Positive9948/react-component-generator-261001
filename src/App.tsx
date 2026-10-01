@@ -27,7 +27,7 @@ function App() {
     anthropic: false,
     google: false,
   });
-  const { components, isLoading, error, generate, removeComponent, clearAll, saveFailed } =
+  const { components, streaming, isLoading, error, generate, removeComponent, clearAll, saveFailed } =
     useComponentGenerator();
   // 복원된 생성 코드가 탭을 멈추게 해도 새로고침으로 벗어날 수 있도록, 이전 세션 컴포넌트는 자동 실행하지 않는다.
   const [restoredIds] = useState(() => new Set(components.map((c) => c.id)));
@@ -173,7 +173,8 @@ function App() {
             </div>
           )}
 
-          {isLoading && (
+          {/* 응답 스트림이 열리기 전까지만 진행 표시를 보여주고, 이후에는 스트리밍 카드가 대신한다. */}
+          {isLoading && !streaming && (
             <div className="window loading-window">
               <TitleBar title="생성 중" />
               <div className="window-body">
@@ -202,6 +203,17 @@ function App() {
           )}
 
           <div className="results-stack">
+            {/* 완료되면 같은 id로 components 맨 앞에 추가되므로 같은 카드 인스턴스가 이어서 렌더링된다. */}
+            {streaming && (
+              <ComponentCard
+                key={streaming.id}
+                component={streaming}
+                onRemove={removeComponent}
+                onRegenerate={handleGenerate}
+                isLoading={isLoading}
+                isStreaming
+              />
+            )}
             {components.map((component) => (
               <ComponentCard
                 key={component.id}
