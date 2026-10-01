@@ -27,8 +27,10 @@ function App() {
     anthropic: false,
     google: false,
   });
-  const { components, isLoading, error, generate, removeComponent, clearAll } =
+  const { components, isLoading, error, generate, removeComponent, clearAll, saveFailed } =
     useComponentGenerator();
+  // 복원된 생성 코드가 탭을 멈추게 해도 새로고침으로 벗어날 수 있도록, 이전 세션 컴포넌트는 자동 실행하지 않는다.
+  const [restoredIds] = useState(() => new Set(components.map((c) => c.id)));
 
   useEffect(() => {
     fetch('/api/config')
@@ -150,6 +152,15 @@ function App() {
           </div>
         )}
 
+        {saveFailed && (
+          <div className="alert" role="alert">
+            <div>
+              <h2>컴포넌트를 브라우저에 저장하지 못했습니다</h2>
+              <p>저장 공간이 부족합니다. 일부 컴포넌트를 삭제하지 않으면 새로고침할 때 최근 변경이 사라집니다.</p>
+            </div>
+          </div>
+        )}
+
         <section className="results-section" aria-label="생성된 컴포넌트">
           {components.length > 0 && (
             <div className="results-header">
@@ -198,6 +209,7 @@ function App() {
                 onRemove={removeComponent}
                 onRegenerate={handleGenerate}
                 isLoading={isLoading}
+                autoRun={!restoredIds.has(component.id)}
               />
             ))}
           </div>

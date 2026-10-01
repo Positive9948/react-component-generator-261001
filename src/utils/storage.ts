@@ -6,11 +6,13 @@ export function loadJson(key: string): unknown {
   }
 }
 
-export function saveJson(key: string, value: unknown): void {
+// 용량 초과나 차단된 저장소에서는 예외 대신 false를 반환해 앱이 계속 동작하게 한다.
+export function saveJson(key: string, value: unknown): boolean {
   try {
     localStorage.setItem(key, JSON.stringify(value));
+    return true;
   } catch {
-    // 용량 초과나 차단된 저장소에서는 저장을 건너뛰고 앱은 계속 동작한다.
+    return false;
   }
 }
 

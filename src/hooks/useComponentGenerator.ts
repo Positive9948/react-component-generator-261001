@@ -4,6 +4,8 @@ import { usePersistentState } from './usePersistentState';
 import { parseComponents } from '../utils/parsePersisted';
 import { STORAGE_KEYS } from '../utils/storage';
 
+export const MAX_COMPONENTS = 20;
+
 interface UseComponentGeneratorReturn {
   components: GeneratedComponent[];
   isLoading: boolean;
@@ -11,10 +13,11 @@ interface UseComponentGeneratorReturn {
   generate: (prompt: string, apiKey: string | undefined, provider: Provider) => Promise<void>;
   removeComponent: (id: string) => void;
   clearAll: () => void;
+  saveFailed: boolean;
 }
 
 export function useComponentGenerator(): UseComponentGeneratorReturn {
-  const [components, setComponents] = usePersistentState(STORAGE_KEYS.components, parseComponents);
+  const [components, setComponents, saveFailed] = usePersistentState(STORAGE_KEYS.components, parseComponents);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -42,7 +45,7 @@ export function useComponentGenerator(): UseComponentGeneratorReturn {
         createdAt: new Date(),
       };
 
-      setComponents((prev) => [newComponent, ...prev]);
+      setComponents((prev) => [newComponent, ...prev].slice(0, MAX_COMPONENTS));
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       setError(message);
@@ -59,5 +62,5 @@ export function useComponentGenerator(): UseComponentGeneratorReturn {
     setComponents([]);
   }, [setComponents]);
 
-  return { components, isLoading, error, generate, removeComponent, clearAll };
+  return { components, isLoading, error, generate, removeComponent, clearAll, saveFailed };
 }

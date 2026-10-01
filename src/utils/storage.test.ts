@@ -30,4 +30,14 @@ describe('saveJson', () => {
     expect(() => saveJson('key', { a: 1 })).not.toThrow();
     setItem.mockRestore();
   });
+
+  it('저장 성공 여부를 반환한다', () => {
+    expect(saveJson('key', { a: 1 })).toBe(true);
+
+    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+      throw new DOMException('QuotaExceededError');
+    });
+    expect(saveJson('key', { a: 1 })).toBe(false);
+    setItem.mockRestore();
+  });
 });
