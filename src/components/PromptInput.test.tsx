@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest';
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { PromptInput } from './PromptInput';
 
@@ -68,5 +68,15 @@ describe('PromptInput', () => {
     await user.type(screen.getByRole('textbox'), '프로필 카드');
 
     expect(screen.getByText('6/500')).toBeInTheDocument();
+  });
+
+  it('최근 프롬프트를 클릭하면 입력창에 채운다', async () => {
+    const user = userEvent.setup();
+    render(<PromptInput onGenerate={vi.fn()} isLoading={false} history={['프로필 카드']} />);
+
+    const historyList = screen.getByRole('list', { name: '최근 프롬프트' });
+    await user.click(within(historyList).getByRole('button', { name: '프로필 카드' }));
+
+    expect(screen.getByRole('textbox')).toHaveValue('프로필 카드');
   });
 });

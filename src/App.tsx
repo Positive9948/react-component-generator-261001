@@ -3,6 +3,10 @@ import { PromptInput } from './components/PromptInput';
 import { ComponentCard } from './components/ComponentCard';
 import { TitleBar } from './components/TitleBar';
 import { useComponentGenerator } from './hooks/useComponentGenerator';
+import { usePersistentState } from './hooks/usePersistentState';
+import { parseHistory, parseProvider } from './utils/parsePersisted';
+import { addPromptToHistory } from './utils/promptHistory';
+import { STORAGE_KEYS } from './utils/storage';
 import type { Provider } from './types';
 import './App.css';
 
@@ -14,7 +18,11 @@ const PROVIDER_CONFIG = {
 function App() {
   const [apiKey, setApiKey] = useState('');
   const [showKey, setShowKey] = useState(false);
-  const [provider, setProvider] = useState<Provider>('google');
+  const [provider, setProvider] = usePersistentState(STORAGE_KEYS.provider, parseProvider);
+  const [promptHistory, setPromptHistory] = usePersistentState(
+    STORAGE_KEYS.promptHistory,
+    parseHistory,
+  );
   const [envKeys, setEnvKeys] = useState<Record<Provider, boolean>>({
     anthropic: false,
     google: false,
@@ -36,6 +44,7 @@ function App() {
       alert(`${PROVIDER_CONFIG[provider].label} API 키를 입력하거나 .env에 설정해주세요.`);
       return;
     }
+    setPromptHistory((prev) => addPromptToHistory(prev, prompt));
     generate(prompt, apiKey || undefined, provider);
   };
 
@@ -75,7 +84,11 @@ function App() {
           <section className="window window--prompt" aria-label="컴포넌트 생성">
             <TitleBar title="새 컴포넌트" />
             <div className="window-body">
-              <PromptInput onGenerate={handleGenerate} isLoading={isLoading} />
+              <PromptInput
+                onGenerate={handleGenerate}
+                isLoading={isLoading}
+                history={promptHistory}
+              />
             </div>
           </section>
 
