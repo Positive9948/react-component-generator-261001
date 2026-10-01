@@ -1,0 +1,68 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  color-scheme: light;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+
+  /* 1-bit palette: the only color on screen belongs to generated components */
+  --ink: #000000;
+  --paper: #ffffff;
+  --mute: #5c5c5c;
+  --rule: #b3b3b3;
+  --disabled: #8c8c8c;
+
+  /* 25% dither, the classic desktop pattern */
+  --desk: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2' shape-rendering='crispEdges'%3E%3Crect width='1' height='1'/%3E%3C/svg%3E");
+  /* 50% dither, used for disabled fills and scroll tracks */
+  --grey50: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='2' height='2' shape-rendering='crispEdges'%3E%3Crect width='1' height='1'/%3E%3Crect x='1' y='1' width='1' height='1'/%3E%3C/svg%3E");
+
+  /* Galmuri11 is drawn on a 12px grid; keep pixel type on multiples of it */
+  --font-pixel: Galmuri11, 'Apple SD Gothic Neo', sans-serif;
+  --font-body: 'IBM Plex Sans KR', 'Apple SD Gothic Neo', system-ui, sans-serif;
+  --font-code: 'IBM Plex Mono', 'IBM Plex Sans KR', ui-monospace, monospace;
+  --px-s: 12px;
+  --px-m: 24px;
+  --px-l: 36px;
+
+  --shadow: 2px 2px 0 var(--ink);
+}
+
+body {
+  min-height: 100vh;
+  background-color: var(--paper);
+  background-image: var(--desk);
+  background-size: 2px 2px;
+  image-rendering: pixelated;
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--ink);
+  outline-offset: 2px;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--paper);
+}
