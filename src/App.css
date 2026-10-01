@@ -668,6 +668,12 @@
 
 /* classic scroll bar: dithered track, white thumb */
 .code-block::-webkit-scrollbar,
+.preview-paused {
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14px;
+}
+
 .preview-render::-webkit-scrollbar {
   width: 16px;
   height: 16px;

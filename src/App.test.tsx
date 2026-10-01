@@ -19,6 +19,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe('App', () => {
@@ -53,5 +54,31 @@ describe('App', () => {
     ).join('');
     expect(stored).toContain('"google"');
     expect(stored).not.toContain('AIza-secret');
+  });
+
+  it('새로고침으로 복원된 컴포넌트는 자동 실행하지 않는다', async () => {
+    localStorage.setItem(
+      STORAGE_KEYS.components,
+      JSON.stringify([
+        { id: '1', prompt: '카드', code: 'render(<div>복원됨</div>)', createdAt: '2026-10-01T05:00:00.000Z' },
+      ]),
+    );
+
+    render(<App />);
+
+    expect(screen.getByRole('button', { name: '미리보기 실행' })).toBeInTheDocument();
+    await expect(screen.findByText('복원됨', {}, { timeout: 300 })).rejects.toThrow();
+  });
+
+  it('컴포넌트를 브라우저에 저장하지 못하면 경고를 보여준다', () => {
+    const setItem = Storage.prototype.setItem;
+    vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (this: Storage, key, value) {
+      if (key === STORAGE_KEYS.components) throw new DOMException('QuotaExceededError');
+      setItem.call(this, key, value);
+    });
+
+    render(<App />);
+
+    expect(screen.getByRole('alert')).toHaveTextContent('컴포넌트를 브라우저에 저장하지 못했습니다');
   });
 });

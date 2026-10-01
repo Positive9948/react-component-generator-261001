@@ -9,13 +9,21 @@ interface ComponentCardProps {
   onRemove: (id: string) => void;
   onRegenerate: (prompt: string) => void;
   isLoading: boolean;
+  autoRun?: boolean;
 }
 
 type Tab = 'preview' | 'code';
 
-export function ComponentCard({ component, onRemove, onRegenerate, isLoading }: ComponentCardProps) {
+export function ComponentCard({
+  component,
+  onRemove,
+  onRegenerate,
+  isLoading,
+  autoRun = true,
+}: ComponentCardProps) {
   const [activeTab, setActiveTab] = useState<Tab>('preview');
   const [previewKey, setPreviewKey] = useState(0);
+  const [isRunning, setIsRunning] = useState(autoRun);
   const createdAt = component.createdAt.toLocaleTimeString('ko-KR', {
     hour: '2-digit',
     minute: '2-digit',
@@ -66,10 +74,17 @@ export function ComponentCard({ component, onRemove, onRegenerate, isLoading }: 
         </button>
       </div>
       <div className="card-content" role="tabpanel">
-        {activeTab === 'preview' ? (
+        {activeTab === 'code' ? (
+          <CodeView code={component.code} />
+        ) : isRunning ? (
           <LivePreview key={previewKey} code={component.code} />
         ) : (
-          <CodeView code={component.code} />
+          <div className="preview-render preview-paused">
+            <p>이전 세션에서 복원된 컴포넌트입니다.</p>
+            <button className="btn" onClick={() => setIsRunning(true)}>
+              미리보기 실행
+            </button>
+          </div>
         )}
       </div>
     </article>
