@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { MAX_PROMPT_LENGTH, validatePrompt } from '../utils/validatePrompt';
 
 interface PromptInputProps {
   onGenerate: (prompt: string) => void;
@@ -16,11 +17,13 @@ const EXAMPLES = [
 
 export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
   const [prompt, setPrompt] = useState('');
+  const trimmedPrompt = prompt.trim();
+  const validationError = validatePrompt(prompt);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (prompt.trim() && !isLoading) {
-      onGenerate(prompt.trim());
+    if (trimmedPrompt && !validationError && !isLoading) {
+      onGenerate(trimmedPrompt);
     }
   };
 
@@ -45,12 +48,20 @@ export function PromptInput({ onGenerate, isLoading }: PromptInputProps) {
             }
           }}
         />
+        {validationError && (
+          <p className="prompt-error" role="alert">
+            {validationError}
+          </p>
+        )}
         <div className="prompt-actions">
+          <span className="prompt-count">
+            {trimmedPrompt.length}/{MAX_PROMPT_LENGTH}
+          </span>
           <span className="prompt-hint">⌘ 또는 Ctrl + Enter로도 생성됩니다</span>
           <button
             type="submit"
             className="btn btn--default"
-            disabled={!prompt.trim() || isLoading}
+            disabled={!trimmedPrompt || !!validationError || isLoading}
           >
             {isLoading ? '생성 중...' : '컴포넌트 생성'}
           </button>
