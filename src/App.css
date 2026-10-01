@@ -295,6 +295,30 @@
   border-bottom: 0;
 }
 
+.prompt-history {
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1px solid var(--ink);
+}
+
+.prompt-history ul {
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid var(--ink);
+  list-style: none;
+}
+
+.prompt-history li + li {
+  border-top: 1px solid var(--rule);
+}
+
+/* 500자 프롬프트도 한 줄로 보이게 자른다 */
+.history-item {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .example-item {
   display: block;
   width: 100%;
