@@ -22,6 +22,8 @@
 - 서버 측 API 키(`ANTHROPIC_API_KEY`, `GOOGLE_API_KEY`)는 절대 서버 밖으로 나가지 않는다. `/api/config`는 boolean(`!!ENV_KEYS.*`)만 노출한다 — `server/index.ts:147-156`. 키 값을 반환, 로그 출력, 에코하지 않는다.
 - `.env`에는 실제 키가 있으며 gitignore 대상이다(`.gitignore:32`). 커밋하거나 값을 출력하거나 코드·문서에 복사하지 않는다. `.worktreeinclude:3`이 워크트리에 이 파일을 복사하므로 그대로 둔다.
 - Gemini 키는 요청 URL 쿼리스트링으로 전송된다(`server/index.ts:99`). 이 URL을 로그로 남기거나 클라이언트에 반환하는 에러 메시지에 포함하지 않는다.
+- 민감 파일은 읽지도 수정하지도 않는다. 사용자가 요청해도 마찬가지다. 대상: `.env`, `.env.*`, `*.env`, `.envrc`, 이름에 `secret`·`credential`이 들어간 파일, 키·인증서(`*.pem`, `*.key`, `*.p12`, `*.pfx`, `*.jks`, `*.keystore`, `id_rsa*`, `id_ecdsa*`, `id_ed25519*`), `.npmrc`, `.netrc`, `.pgpass`, `.git-credentials`, 홈의 `~/.ssh`, `~/.aws`, `~/.gnupg`, `~/.kube`, `~/.docker/config.json`, `~/.config/gh`, `~/.config/gcloud`. `.claude/settings.json`의 `permissions.deny`가 Read·Edit·Bash 단계에서 이를 강제한다.
+- deny 규칙을 우회하지 않는다: 환경변수 덤프(`env`, `printenv`, `export -p`, `declare -x`, `set`, `$*_API_KEY`·`$*_TOKEN` 에코), 인라인 실행(`node -e`, `bun -e`, `python -c` 등), 스크립트 파일 작성, 인코딩(`base64` 등), 다른 경로 표기, `git show <rev>:.env`, `git add -f`, 자격증명 CLI(`gh auth token`, `security find-*-password`, `aws configure get`, `gcloud auth print-*`, `kubectl config view` 등)로 같은 정보에 접근하지 않는다. 차단되면 다른 방법을 찾지 말고 사용자에게 보고한다. 키 설정 여부만 필요하면 `/api/config`의 boolean으로 확인한다.
 
 ### Do
 
@@ -50,6 +52,7 @@
 - 사용자에게 보이는 UI 문구, 코드 주석, 에러 메시지는 한국어로 작성한다.
 - 커밋: 한국어 Conventional Commits, `type: 요약` 형식이며 `feat`, `fix`, `refactor`, `chore`를 사용한다(`git log` 참고). 커밋 시 `commit` 스킬을 사용한다.
 - `.agents/skills/` 아래 스킬은 `skills-lock.json`에 업스트림 저장소 해시로 고정되어 있다. 직접 수정하지 말고 스킬 소스를 통해 업데이트한다.
+- deny 규칙의 부작용: `secret`·`credential` 단어가 들어간 모든 Bash 명령(검색, 커밋 메시지 포함)과 `bun -e`·`node -e` 같은 일회성 실행도 막힌다. 검색은 Grep 도구를 쓰고, 커밋 메시지에서는 해당 단어를 피한다. 민감 파일 패턴을 추가·삭제할 때는 `.claude/settings.json`의 `permissions.deny`와 위 불변 규칙을 같은 변경에서 함께 수정한다.
 - 유지보수 정책: 이 문서의 규칙이 코드와 어긋나면(라인 이동, 파일명 변경, 포트 변경, 신규 프로바이더 등) 같은 변경에서 이 파일의 업데이트를 제안한다. 알려진 불일치: `README.md`가 저장소에 없는 `.env.example`을 참조한다.
 
 ## Context Map
